@@ -103,7 +103,8 @@ app.get('/api/status', (req, res) => {
 });
 
 // 3. Telegram Webhook to catch button clicks
-app.post('/webhook', async (req, res) => {
+app.post('/webhook', express.json(), async (req, res) => {
+    console.log("WEBHOOK HIT RECEIVED:", JSON.stringify(req.body));
     const update = req.body;
     if (update.callback_query) {
         const action = update.callback_query.data;
