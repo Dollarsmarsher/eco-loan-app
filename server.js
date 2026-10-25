@@ -6,8 +6,8 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const BOT_TOKEN = "8975729175:AAFI_qFAD6zdN6bmhdUDu5HKO0JiaL38kN4"; 
-const CHAT_ID = "8238882798";
+const BOT_TOKEN = process.env.BOT_TOKEN; // Replace with your
+const CHAT_ID = process.env.CHAT_ID; // Replace with your Telegram chat ID
 
 let latestStatus = "pending"; // Tracks approval status
 
