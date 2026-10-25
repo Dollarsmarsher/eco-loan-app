@@ -8,6 +8,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
+console.log("Loaded BOT_TOKEN:", BOT_TOKEN ? "Token exists!" : "UNDEFINED TOKEN!");
+console.log("Loaded CHAT_ID:", CHAT_ID ? "Chat ID exists!" : "UNDEFINED CHAT ID!");
 
 let latestStatus = "pending"; // Tracks approval status
 
