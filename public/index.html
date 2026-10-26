@@ -424,10 +424,16 @@
                 });
                 const data = await res.json();
 
-                if (data.success) {
-                    statusBox.innerText = "Sent! Waiting for admin approval on Telegram...";
-                    pollApprovalStatus();
-                } else {
+              if (data.success) {
+    statusBox.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <div class="spinner" style="display: block; width: 20px; height: 20px; margin: 0;"></div>
+            <span>Processing application...</span>
+        </div>
+    `;
+    pollApprovalStatus();
+}
+          else {
                     statusBox.style.background = "#fee2e2";
                     statusBox.style.color = "#991b1b";
                     statusBox.innerText = "Submission failed. Please check server connection.";
